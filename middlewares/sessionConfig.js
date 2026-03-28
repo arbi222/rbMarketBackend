@@ -1,0 +1,20 @@
+const session = require("express-session");
+const mongoStore = require("connect-mongo");
+
+const sessionMiddleware = session({
+  secret: process.env.SESSION_SECRET_KEY,
+  resave: false,
+  saveUninitialized: false,
+  rolling: true, // this resets expiration of session on each response 
+  store: mongoStore.create({
+    mongoUrl: process.env.MONGO_URL,
+    collectionName: 'sessions'
+  }),
+  cookie: { 
+    sameSite: 'lax',        // none for production
+    secure: false,          // secure: false for http , true for https
+    maxAge: 1000 * 60 * 60  // 60 min = 1 hour 
+  }      
+});
+
+module.exports = sessionMiddleware;
