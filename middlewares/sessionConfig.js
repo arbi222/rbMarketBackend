@@ -11,8 +11,8 @@ const sessionMiddleware = session({
     collectionName: 'sessions'
   }),
   cookie: { 
-    sameSite: 'lax',        // none for production
-    secure: false,          // secure: false for http , true for https
+    sameSite: "none",        // none for production
+    secure: true,          // secure: false for http , true for https
     maxAge: 1000 * 60 * 60  // 60 min = 1 hour 
   }      
 });
