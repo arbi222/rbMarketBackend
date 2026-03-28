@@ -75,7 +75,7 @@ app.use("/api/payment", paypalPaymentsRoute);
 app.use("/api/TFA", twoFactorAuthRoute);
 
 
-cron.schedule("*/10 * * * *", async () => {
+cron.schedule("*/2 * * * *", async () => {
   const cutOff = new Date(Date.now() - 24 * 60 * 60 * 1000);  // 24 hours ago
 
   try{
