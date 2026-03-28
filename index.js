@@ -18,7 +18,7 @@ const sessionMiddleware = require("./middlewares/sessionConfig");
 mongoose.connect(process.env.MONGO_URL);
 app.set("trust proxy", 1);
 const corsOptions = {
-  origin: "http://localhost:5173",   
+  origin: `${process.env.FRONT_END_URL}`,   
   credentials: true,
 };
 
