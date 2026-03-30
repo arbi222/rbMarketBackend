@@ -222,6 +222,24 @@ router.get('/google', (req, res, next) => {
 // The result of google authentication
 router.get('/google/rbmarket', (req, res, next) => {
 
+  if (req.query.error === "access_denied"){
+      let state = {};  
+      try {
+        state = req.query.state ? JSON.parse(req.query.state) : {};
+      } 
+      catch (err) {
+        console.error("Failed to parse state on cancel:", err);
+      }
+      
+      const {link, deleteAccount} = state;
+  
+      if (link || deleteAccount) {
+        return res.redirect(`${process.env.FRONT_END_URL}/settings?section=security&code=CANCELLED`);
+      }
+  
+      return res.redirect(`${process.env.FRONT_END_URL}/sign-in?cancelled=true`);
+  }
+
   passport.authenticate('google', (err, user, info) => {
 
     if (err){
