@@ -3,7 +3,7 @@ const User = require("../models/User");
 const crypto = require("crypto");
 const checkSessionExpiry = require("../middlewares/sessionExpiry");
 const isAuthenticated = require("../middlewares/isAuthenticated");
-const { transporter } = require("../utils/helper");
+const { mg } = require("../utils/helper");
 
 // Send an email verification link to the user's email
 router.post("/sendEmail", checkSessionExpiry, isAuthenticated, async (req, res) => {
@@ -28,8 +28,8 @@ router.post("/sendEmail", checkSessionExpiry, isAuthenticated, async (req, res) 
 
         const resetUrl = `${process.env.FRONT_END_URL}/verify-email/${token}`
         const mailOptions = {
-            from: `"RBMarket Support" <${process.env.RB_EMAIL}>`,
-            to: user.email,
+            from: `"RBMarket Support" <noreply@${process.env.MAILGUN_DOMAIN}>`,
+            to: [user.email],
             subject: 'Verify email for your RBMarket account',
             text: `You requested an email verification. Click below:\n\n${resetUrl}\n\nThis link expires in ${timeRemaining} minutes.\n\nIf you did not request an email verification, we recommend changing your password immediately to help secure your account.`,
             html: `
@@ -45,7 +45,7 @@ router.post("/sendEmail", checkSessionExpiry, isAuthenticated, async (req, res) 
         };
 
         await user.save();
-        await transporter.sendMail(mailOptions);
+        await mg.messages.create(process.env.MAILGUN_DOMAIN, mailOptions);
         return res.status(200).json({message: "Email verification link sent to your email!"}); 
     }
     catch(err){

@@ -3,7 +3,7 @@ const User = require("../models/User");
 const crypto = require("crypto");
 const checkSessionExpiry = require("../middlewares/sessionExpiry");
 const isAuthenticated = require("../middlewares/isAuthenticated");
-const { transporter, promisifySetPassword } = require("../utils/helper");
+const { mg, promisifySetPassword } = require("../utils/helper");
 
 // Forgot password
 router.post("/forgotPassword", async (req,res) => {
@@ -29,8 +29,8 @@ router.post("/forgotPassword", async (req,res) => {
         const resetUrl = `${process.env.FRONT_END_URL}/reset-password/${resetToken}`
 
         const mailOptions = {
-            from: `"RBMarket Support" <${process.env.RB_EMAIL}>`,
-            to: user.email,
+            from: `"RBMarket Support" <noreply@${process.env.MAILGUN_DOMAIN}>`,
+            to: [user.email],
             subject: 'Password reset for your RBMarket account',
             text: `You requested a password reset. Click below:\n\n${resetUrl}\n\nThis link expires in ${timeRemaining} minutes.\n\nIf you didn't request this, ignore this email.`,
             html: `
@@ -44,8 +44,8 @@ router.post("/forgotPassword", async (req,res) => {
               <p>— The RBMarket Team</p>
             `
         };
-        
-        await transporter.sendMail(mailOptions);
+
+        await mg.messages.create(process.env.MAILGUN_DOMAIN, mailOptions);
         return res.status(200).json({message: "Reset password link was successfully sent to email!"}); 
     }
     catch(err){

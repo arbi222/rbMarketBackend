@@ -3,7 +3,7 @@ const User = require("../models/User");
 const crypto = require("crypto");
 const checkSessionExpiry = require("../middlewares/sessionExpiry");
 const isAuthenticated = require("../middlewares/isAuthenticated");
-const { transporter } = require("../utils/helper");
+const { mg } = require("../utils/helper");
 
 // Requesting an auth code to use it later for activation or deactivation of 2FA
 router.post("/requestTFACode", checkSessionExpiry, isAuthenticated, async (req, res) => {
@@ -30,8 +30,8 @@ router.post("/requestTFACode", checkSessionExpiry, isAuthenticated, async (req, 
         await user.save();
 
         const mailOptions = {
-            from: `"RBMarket Security" <${process.env.RB_EMAIL}>`,
-            to: user.email,
+            from: `"RBMarket Security" <noreply@${process.env.MAILGUN_DOMAIN}>`,
+            to: [user.email],
             subject: `RBMarket - Confirm ${enable2FA ? "2FA Activation" : "2FA Deactivation"}`,
             html: `
                 <div style="font-family: Arial, sans-serif; padding: 20px; background: #ffffff; border-radius: 8px; max-width: 600px; margin: auto;">
@@ -47,7 +47,7 @@ router.post("/requestTFACode", checkSessionExpiry, isAuthenticated, async (req, 
             `
         };
 
-        await transporter.sendMail(mailOptions);
+        await mg.messages.create(process.env.MAILGUN_DOMAIN, mailOptions);
         return res.status(200).json({message: "2FA auth code was sent to your email."});
     } catch (err) {
         return res.status(500).json({message: err.message});
@@ -93,8 +93,8 @@ router.post("/checkTFA", checkSessionExpiry, isAuthenticated, async (req, res) =
         await user.save();
 
         const mailOptions = {
-            from: `"RBMarket Security" <${process.env.RB_EMAIL}>`,
-            to: user.email,
+            from: `"RBMarket Security" <noreply@${process.env.MAILGUN_DOMAIN}>`,
+            to: [user.email],
             subject: `Two-Factor Authentication ${enable2FA ? "Enabled" : "Disabled"}`,
             text: `Hello ${user.firstName || 'User'},
 
@@ -127,7 +127,7 @@ router.post("/checkTFA", checkSessionExpiry, isAuthenticated, async (req, res) =
             `
         };
 
-        await transporter.sendMail(mailOptions);
+        await mg.messages.create(process.env.MAILGUN_DOMAIN, mailOptions);
         return res.status(200).json({
             message: `Two-factor Authentication ${enable2FA ? "enabled" : "disabled"} successfully.`, 
             isTwoFactorAuthOn: user.isTwoFactorAuthOn
@@ -159,8 +159,8 @@ router.post("/sendAuthCode", async (req, res) => {
         await user.save();
         
         const mailOptions = {
-            from: `"RBMarket Support" <${process.env.RB_EMAIL}>`,
-            to: userEmail,
+            from: `"RBMarket Support" <noreply@${process.env.MAILGUN_DOMAIN}>`,
+            to: [userEmail],
             subject: 'Your RBMarket Two-Factor Authentication Code',
             text: `Hello ${user.firstName || 'User'},
 
@@ -185,7 +185,7 @@ router.post("/sendAuthCode", async (req, res) => {
             `
         };
 
-        await transporter.sendMail(mailOptions);
+        await mg.messages.create(process.env.MAILGUN_DOMAIN, mailOptions);
         return res.status(200).json({message: "Auth code was sent to your email!"}); 
     }
     catch(err){

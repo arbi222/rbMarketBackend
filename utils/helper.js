@@ -1,16 +1,15 @@
-const nodeMailer = require("nodemailer");
 const User = require("../models/User");
 const Category = require("../models/Category");
 const Brand = require("../models/Brand");
 const mongoose = require("mongoose");
+const formData = require("form-data");
+const Mailgun = require("mailgun.js");
 
-// Setting up the transporter for the email sending
-const transporter = nodeMailer.createTransport({
-    service: "gmail",
-    auth: {
-        user: process.env.RB_EMAIL,
-        pass: process.env.RB_PASS_CODE
-    }
+const mailgun = new Mailgun(formData);
+const mg = mailgun.client({
+  username: "api",
+  key: process.env.MAILGUN_SENDER_API_KEY,
+  url: "https://api.eu.mailgun.net"
 });
 
 // A helper function for setting the password
@@ -30,11 +29,6 @@ const setAdminIfFirstUser = async (user) => {
         await user.save();
     }
 };
-
-async function getActiveSellerIds() {
-  const users = await User.find({status: "active"}, { _id: 1 });
-  return users.map(u => u._id);
-}
 
 const buildFilters = async (query, options = {}) => {
   const { title, category, brand, sellerSlug } = query;
@@ -133,4 +127,4 @@ const applyFirstTransactionLock = async (user) => {
   }
 };
 
-module.exports = { transporter, promisifySetPassword, setAdminIfFirstUser, buildFilters, applyFirstTransactionLock };
+module.exports = { mg, promisifySetPassword, setAdminIfFirstUser, buildFilters, applyFirstTransactionLock };
