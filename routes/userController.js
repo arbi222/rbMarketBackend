@@ -11,6 +11,7 @@ const isAuthenticated = require("../middlewares/isAuthenticated");
 const checkSessionExpiry = require("../middlewares/sessionExpiry");
 const mongoose = require("mongoose");
 const Transaction = require("../models/Transaction");
+const { mg } = require("../utils/helper");
 
 // Get the authenticated user
 router.get("/me", checkSessionExpiry, isAuthenticated, async (req, res) => {
@@ -72,6 +73,20 @@ router.put("/:id", checkSessionExpiry, isAuthenticated, async (req, res) => {
                     });
                     await user.save();
 
+                    const mailOptions = {
+                        from: `"RBMarket Support" <noreply@${process.env.MAILGUN_DOMAIN}>`,
+                        to: [user.email],
+                        subject: "Your RBMarket password was changed",
+                        text: `Hi ${user.firstName || "User"},\n\nYour RBMarket account password has been successfully changed.\n\nIf this wasn't you, please contact support immediately or reset your password again.\n\n— The RBMarket Team`,
+                        html: `
+                          <p>Hello ${user.firstName || "User"},</p>
+                          <p>This is a confirmation that your <strong>RBMarket</strong> account password has been successfully changed.</p>
+                          <p>If this wasn’t you, please reset your password immediately to secure your account.</p>
+                          <p>— The RBMarket Team</p>
+                        `,
+                    };
+                
+                    await mg.messages.create(process.env.MAILGUN_DOMAIN, mailOptions);
                     return res.status(200).json({ message: "Password changed successfully!" });
                 }
                 catch(err){
