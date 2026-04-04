@@ -91,8 +91,8 @@ router.post("/resetPassword/:token", async (req, res) => {
         await user.save();
 
         const mailOptions = {
-            from: `"RBMarket Support" <${process.env.RB_EMAIL}>`,
-            to: user.email,
+            from: `"RBMarket Support" <noreply@${process.env.MAILGUN_DOMAIN}>`,
+            to: [user.email],
             subject: "Your RBMarket password was changed",
             text: `Hi ${user.firstName || "User"},\n\nYour RBMarket account password has been successfully changed.\n\nIf this wasn't you, please contact support immediately or reset your password again.\n\n— The RBMarket Team`,
             html: `
@@ -103,7 +103,7 @@ router.post("/resetPassword/:token", async (req, res) => {
             `,
         };
 
-        await transporter.sendMail(mailOptions);
+        await mg.messages.create(process.env.MAILGUN_DOMAIN, mailOptions);
         return res.status(200).json({ message: "Password has been successfully reset." });
     }
     catch(err){
