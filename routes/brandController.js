@@ -91,7 +91,7 @@ router.get("/topBrands", async (req, res) => {
                 $sort: {productCount: -1}
             },
             {
-                $limit: 6
+                $limit: 10
             }
         ]);
         
@@ -110,7 +110,7 @@ router.get("/topBrands", async (req, res) => {
                 topBrands.findIndex(t => t._id.toString() === b._id.toString())
         );
 
-        return res.status(200).json({topBrands: mergedBrands});
+        return res.status(200).json({topBrands: mergedBrands.slice(0, 6)});
     }
     catch(err){
         return res.status(500).json({message: err.message});
