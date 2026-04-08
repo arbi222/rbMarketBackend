@@ -91,7 +91,7 @@ router.get("/topBrands", async (req, res) => {
                 $sort: {productCount: -1}
             },
             {
-                $limit: 6
+                $limit: 7
             }
         ]);
         
