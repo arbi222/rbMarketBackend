@@ -9,6 +9,7 @@ const morgan = require("morgan");
 const passport = require("passport");
 const cron = require("node-cron");
 const http = require("http");
+const https = require("https");
 const {Server} = require("socket.io");
 
 dotenv.config();
@@ -18,7 +19,7 @@ const sessionMiddleware = require("./middlewares/sessionConfig");
 mongoose.connect(process.env.MONGO_URL);
 app.set("trust proxy", 1);
 const corsOptions = {
-  origin: `${process.env.FRONT_END_URL}`,   
+  origin: process.env.FRONT_END_URL,   
   credentials: true,
 };
 
@@ -126,6 +127,18 @@ io.on("connection", (socket) => {
     }
   });
 });
+
+const backendUrl = "https://rbmarketapi.arbihamolli.com/";
+const job = new cron.CronJob('*/2 * * * *', function(){
+  https.get(backendUrl, (res) => {
+    if (res.statusCode === 200){
+      console.log("server restarted")
+    }
+  }).on("error", (err) => {
+      console.log("error");
+  })
+})
+job.start();
 
 const port = process.env.PORT || 8500;
 server.listen(port, () => {
